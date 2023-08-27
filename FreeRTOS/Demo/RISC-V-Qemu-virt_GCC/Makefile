@@ -1,6 +1,7 @@
-CROSS   = riscv64-unknown-elf-
+CROSS   = /opt/riscv/bin/riscv64-unknown-elf-
 CC      = $(CROSS)gcc
 OBJCOPY = $(CROSS)objcopy
+OBJDUMP = $(CROSS)objdump
 ARCH    = $(CROSS)ar
 
 BUILD_DIR       = build
@@ -14,7 +15,7 @@ CPPFLAGS = \
 	-I $(RTOS_SOURCE_DIR)/include \
 	-I $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V \
 	-I $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/chip_specific_extensions/RV32I_CLINT_no_extensions
-CFLAGS  = -march=rv32imac -mabi=ilp32 -mcmodel=medany \
+CFLAGS  = -march=rv32imac_zicsr -mabi=ilp32 -mcmodel=medany \
 	-Wall \
 	-fmessage-length=0 \
 	-ffunction-sections \
@@ -56,6 +57,9 @@ DEPS = $(SRCS:%.c=$(BUILD_DIR)/%.d) $(ASMS:%.S=$(BUILD_DIR)/%.d)
 
 $(BUILD_DIR)/RTOSDemo.axf: $(OBJS) fake_rom.lds Makefile
 	$(CC) $(LDFLAGS) $(OBJS) -o $@
+	$(OBJCOPY) -O ihex $(BUILD_DIR)/RTOSDemo.axf $(BUILD_DIR)/RTOSDemo.hex
+	$(OBJCOPY) -O binary $(BUILD_DIR)/RTOSDemo.axf $(BUILD_DIR)/RTOSDemo.bin
+	$(OBJDUMP) -S -d $(BUILD_DIR)/RTOSDemo.axf > $(BUILD_DIR)/RTOSDemo.asm
 
 $(BUILD_DIR)/%.o: %.c Makefile
 	@mkdir -p $(@D)
