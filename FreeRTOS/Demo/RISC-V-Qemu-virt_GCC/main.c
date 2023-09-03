@@ -29,7 +29,7 @@
 #include <task.h>
 
 /* Run a simple demo just prints 'Blink' */
-#define DEMO_BLINKY	1
+#define DEMO_BLINKY
 #define mainVECTOR_MODE_DIRECT	1
 
 extern void freertos_risc_v_trap_handler( void );
@@ -61,7 +61,8 @@ int main( void )
 #if defined(DEMO_BLINKY)
 	ret = main_blinky();
 #else
-#error "Please add or select demo."
+	extern void test_list_init(void);
+	test_list_init();
 #endif
 
 	return ret;
