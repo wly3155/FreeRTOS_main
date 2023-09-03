@@ -90,6 +90,11 @@ void vAssertCalled( void );
 	#define uartPRIMARY_PRIORITY		( configMAX_PRIORITIES - 3 )
 #endif
 
+#ifdef __riscv_xlen
+#undef __riscv_xlen
+#define __riscv_xlen						32
+#endif
+
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */
 #define INCLUDE_vTaskPrioritySet			1
