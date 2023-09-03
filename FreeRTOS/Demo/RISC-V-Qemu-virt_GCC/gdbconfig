@@ -1,0 +1,5 @@
+target remote localhost:1234
+set print pretty on
+set history filename gdb.history
+set history save on
+set history size 200
