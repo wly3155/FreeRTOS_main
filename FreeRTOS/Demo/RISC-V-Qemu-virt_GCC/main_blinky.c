@@ -34,6 +34,8 @@
 #include "riscv-virt.h"
 #include "ns16550.h"
 
+#include "include/list.h"
+
 /* Priorities used by the tasks. */
 #define mainQUEUE_RECEIVE_TASK_PRIORITY		( tskIDLE_PRIORITY + 2 )
 #define	mainQUEUE_SEND_TASK_PRIORITY		( tskIDLE_PRIORITY + 1 )
