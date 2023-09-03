@@ -1,75 +1,63 @@
-CROSS   = /opt/riscv/bin/riscv64-unknown-elf-
-CC      = $(CROSS)gcc
-OBJCOPY = $(CROSS)objcopy
-OBJDUMP = $(CROSS)objdump
-ARCH    = $(CROSS)ar
+BUILD_DIR=build
 
-BUILD_DIR       = build
-RTOS_SOURCE_DIR = $(abspath ../../Source)
-DEMO_SOURCE_DIR = $(abspath ../Common/Minimal)
+include $(BUILD_DIR)/config.mk
+include $(BUILD_DIR)/project.mk
 
-CPPFLAGS = \
-	-D__riscv_float_abi_soft \
-	-DportasmHANDLE_INTERRUPT=handle_trap \
-	-I . -I ../Common/include \
-	-I $(RTOS_SOURCE_DIR)/include \
-	-I $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V \
-	-I $(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/chip_specific_extensions/RV32I_CLINT_no_extensions
-CFLAGS  = -march=rv32imac_zicsr -mabi=ilp32 -mcmodel=medany \
-	-Wall \
-	-fmessage-length=0 \
-	-ffunction-sections \
-	-fdata-sections \
-	-fno-builtin-printf
-LDFLAGS = -nostartfiles -Tfake_rom.lds \
-	-march=rv32imac -mabi=ilp32 -mcmodel=medany \
-	-Xlinker --gc-sections \
-	-Xlinker --defsym=__stack_size=300 \
-	-Xlinker -Map=$(BUILD_DIR)/RTOSDemo.map
+OUTPUT_DIR=$(PROJECT)_OUT
+TARGET = $(PROJECT)
 
-ifeq ($(DEBUG), 1)
-    CFLAGS += -Og -ggdb3
-else
-    CFLAGS += -O2
-endif
+# default action: build all
+all: $(OUTPUT_DIR)/$(TARGET).elf
+	$(_CROSS_COMPILER_OBJCOPY_) -O ihex $(OUTPUT_DIR)/$(TARGET).elf $(OUTPUT_DIR)/$(TARGET).hex
+	$(_CROSS_COMPILER_OBJCOPY_) -O binary $(OUTPUT_DIR)/$(TARGET).elf $(OUTPUT_DIR)/$(TARGET).bin
+	$(_CROSS_COMPILER_OBJDUMP_) -S -d -l $(OUTPUT_DIR)/$(TARGET).elf > $(OUTPUT_DIR)/$(TARGET).asm
+	@echo "Sucessfuly build" $(PROJECT)
 
-SRCS = main.c main_blinky.c riscv-virt.c ns16550.c \
-	$(DEMO_SOURCE_DIR)/EventGroupsDemo.c \
-	$(DEMO_SOURCE_DIR)/TaskNotify.c \
-	$(DEMO_SOURCE_DIR)/TimerDemo.c \
-	$(DEMO_SOURCE_DIR)/blocktim.c \
-	$(DEMO_SOURCE_DIR)/dynamic.c \
-	$(DEMO_SOURCE_DIR)/recmutex.c \
-	$(RTOS_SOURCE_DIR)/event_groups.c \
-	$(RTOS_SOURCE_DIR)/list.c \
-	$(RTOS_SOURCE_DIR)/queue.c \
-	$(RTOS_SOURCE_DIR)/stream_buffer.c \
-	$(RTOS_SOURCE_DIR)/tasks.c \
-	$(RTOS_SOURCE_DIR)/timers.c \
-	$(RTOS_SOURCE_DIR)/portable/MemMang/heap_4.c \
-	$(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/port.c
+#######################################
+# build the application
+#######################################
+# list of objects
+C_FILES := $(patsubst ./%,%,$(C_FILES))
+vpath %.c $(sort $(dir $(C_FILES)))
+OBJECTS := $(sort $(C_FILES:%.c=$(OUTPUT_DIR)/%.o))
 
-ASMS = start.S vector.S\
-	$(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/portASM.S
+# list of ASM program objects
+ASM_FILES := $(patsubst ./%,%,$(ASM_FILES))
+vpath %.S $(sort $(dir $(ASM_FILES)))
+OBJECTS += $(sort $(ASM_FILES:%.S=$(OUTPUT_DIR)/%.o))
 
-OBJS = $(SRCS:%.c=$(BUILD_DIR)/%.o) $(ASMS:%.S=$(BUILD_DIR)/%.o)
-DEPS = $(SRCS:%.c=$(BUILD_DIR)/%.d) $(ASMS:%.S=$(BUILD_DIR)/%.d)
+$(OUTPUT_DIR)/%.o : %.c Makefile | $(OUTPUT_DIR)
+	@echo 'compile $< to $@'
+	@mkdir -p $(dir $@)
+	$(_CROSS_COMPILER_GCC_) -c $(C_FLAGS) $(INCLUDES) \
+	-Wa,-a,-ad,-alms=$(OUTPUT_DIR)/$(<:.c=.lst) $< -o $@
 
-$(BUILD_DIR)/RTOSDemo.axf: $(OBJS) fake_rom.lds Makefile
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
-	$(OBJCOPY) -O ihex $(BUILD_DIR)/RTOSDemo.axf $(BUILD_DIR)/RTOSDemo.hex
-	$(OBJCOPY) -O binary $(BUILD_DIR)/RTOSDemo.axf $(BUILD_DIR)/RTOSDemo.bin
-	$(OBJDUMP) -S -d $(BUILD_DIR)/RTOSDemo.axf > $(BUILD_DIR)/RTOSDemo.asm
+$(OUTPUT_DIR)/%.o : %.S Makefile | $(OUTPUT_DIR)
+	@echo 'compile $< to $@'
+	@mkdir -p $(dir $@)
+	$(_CROSS_COMPILER_GCC_) -x assembler-with-cpp -c $(C_FLAGS) $(INCLUDES) $< -o $@
 
-$(BUILD_DIR)/%.o: %.c Makefile
-	@mkdir -p $(@D)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -c $< -o $@
+$(OUTPUT_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
+	$(_CROSS_COMPILER_GCC_) $(OBJECTS) $(LD_FLAGS) $(LD_LIBS) -Wl,-Map=$(OUTPUT_DIR)/$(TARGET).map -T$(LD_SCRIPT) -o $@
+	$(_CROSS_COMPILER_SIZE_) $@
 
-$(BUILD_DIR)/%.o: %.S Makefile
-	@mkdir -p $(@D)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -c $< -o $@
+$(OUTPUT_DIR):
+	mkdir -p $@
 
+.phony: clean
 clean:
-	rm -rf $(BUILD_DIR)
+	-rm -fR .dep $(OUTPUT_DIR)
 
--include $(DEPS)
+download_and_run:
+	qemu-system-riscv32 -nographic -machine virt -net none \
+		-chardev stdio,id=con,mux=on -serial chardev:con \
+		-mon chardev=con,mode=readline -bios none -smp 4 \
+		-s -kernel $(OUTPUT_DIR)/$(TARGET).elf
+
+gdb_server_start:
+	$(GDB_SERVER)
+
+gdb:
+	$(_CROSS_COMPILER_GDB_) $(OUTPUT_DIR)/$(TARGET).elf -x $(OUTPUT_DIR)/../gdbconfig
+
+-include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
