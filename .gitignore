@@ -11,6 +11,7 @@
 [Oo]bj/
 [Ll]og/
 [Ll]ogs/
+*.log
 
 # CodeWarrior temporary files
 *.tdt
@@ -23,6 +24,8 @@ CWSettingsWindows.stg
 *.elf
 *.out
 *.rom
+*OUT
+*.history
 
 # MS Word Files
 *.doc
