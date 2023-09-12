@@ -27,9 +27,10 @@
 /* FreeRTOS kernel includes. */
 #include <FreeRTOS.h>
 #include <task.h>
+#include <stdio.h>
 
 /* Run a simple demo just prints 'Blink' */
-#define DEMO_BLINKY	1
+//#define DEMO_BLINKY	1
 #define mainVECTOR_MODE_DIRECT	1
 
 extern void freertos_risc_v_trap_handler( void );
@@ -61,7 +62,8 @@ int main( void )
 #if defined(DEMO_BLINKY)
 	ret = main_blinky();
 #else
-#error "Please add or select demo."
+	extern void test_list_init(void);
+	test_list_init();
 #endif
 
 	return ret;
@@ -109,6 +111,7 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
 	configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
 	function is called if a stack overflow is detected. */
 	taskDISABLE_INTERRUPTS();
+	printf("%s stack overflow\n", pcTaskName);
 	for( ;; );
 }
 /*-----------------------------------------------------------*/

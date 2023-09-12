@@ -51,6 +51,7 @@ INCLUDES += -I$(RTOS_SOURCE_DIR)/portable/GCC/RISC-V/chip_specific_extensions/RV
 
 COMMON_DIR = $(FREERTOS_ROOT_DIR)/common
 INCLUDES += -I$(COMMON_DIR)
+C_FILES += $(COMMON_DIR)/source/heap.c
 C_FILES += $(COMMON_DIR)/source/log.c
 C_FILES += $(COMMON_DIR)/test/test_list.c
 
@@ -60,3 +61,5 @@ C_FILES += $(PLATFORM_DIR)/source/time.c
 C_FILES += $(PLATFORM_DIR)/source/uart.c
 
 LD_FLAGS += -Wl,--wrap,printf
+LD_FLAGS += -Wl,--wrap,malloc
+LD_FLAGS += -Wl,--wrap,free
