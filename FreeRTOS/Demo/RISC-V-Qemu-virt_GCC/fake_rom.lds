@@ -110,6 +110,7 @@ SECTIONS
 	.stack :
 	{
 		. = ALIGN(16);
+		_stack_end = .;
 		. += __stack_size;
 		_stack_top = .;
 	} >ram AT>ram

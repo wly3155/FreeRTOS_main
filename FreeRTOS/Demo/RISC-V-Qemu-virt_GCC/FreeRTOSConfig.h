@@ -65,12 +65,12 @@
 #define configUSE_APPLICATION_TASK_TAG	0
 #define configUSE_COUNTING_SEMAPHORES	1
 #define configGENERATE_RUN_TIME_STATS	0
-#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
+#define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
 
 /* Assert definitions. */
-void vAssertCalled( void );
+void vAssertCalled( char *file, uint32_t line );
 #define configASSERT_DEFINED                   1
-#define configASSERT( x )                      do { if ( !(x) ) vAssertCalled(); } while(0)
+#define configASSERT( x )                      do { if ( !(x) ) vAssertCalled(__FILE__, __LINE__); } while(0)
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES 			0

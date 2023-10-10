@@ -68,6 +68,17 @@ _start:
 	bltu a0, a1, 1b
 2:
 
+	// Clear stack section
+	la a0, _stack_end
+	la a1, _stack_top
+	bgeu a0, a1, 2f
+1:
+	li a2, 0xa5a5a5a5
+	STOR a2, (a0)
+	addi a0, a0, REGSIZE
+	bltu a0, a1, 1b
+
+2:
 	// argc, argv, envp is 0
 	li  a0, 0
 	li  a1, 0

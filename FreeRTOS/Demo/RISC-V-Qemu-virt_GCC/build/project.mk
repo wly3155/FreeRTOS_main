@@ -1,29 +1,29 @@
 include $(BUILD_DIR)/project.config
 
-FREERTOS_ROOT_DIR=$(shell pwd)/../../../..
+FREERTOS_ROOT_DIR=/home/wuliyong/project/freeRTOS
 FREERTOS_VERSION=FreeRTOS_main
 PROJECT=RISC-V-Qemu-virt_GCC
 
 FREERTOS_DIR = $(FREERTOS_ROOT_DIR)/$(FREERTOS_VERSION)
-RTOS_SOURCE_DIR = $(FREERTOS_DIR)/FreeRTOS/Source
 RTOS_DEMO_DIR=$(FREERTOS_DIR)/FreeRTOS/Demo
 PROJECT_DIR = $(RTOS_DEMO_DIR)/$(PROJECT)
 
-DEMO_SOURCE_DIR = $(FREERTOS_DIR)/FreeRTOS/Demo
-
-INCLUDES += -I$(DEMO_SOURCE_DIR)/Common/include
+INCLUDES += -I$(RTOS_DEMO_DIR)/Common/include
 INCLUDES += -I$(PROJECT_DIR)
+
+C_FILES += main.c main_blinky.c riscv-virt.c ns16550.c \
+	$(RTOS_DEMO_DIR)/Common/Minimal/EventGroupsDemo.c \
+	$(RTOS_DEMO_DIR)/Common/Minimal/TaskNotify.c \
+	$(RTOS_DEMO_DIR)/Common/Minimal/TimerDemo.c \
+	$(RTOS_DEMO_DIR)/Common/Minimal/blocktim.c \
+	$(RTOS_DEMO_DIR)/Common/Minimal/dynamic.c \
+	$(RTOS_DEMO_DIR)/Common/Minimal/recmutex.c 
+
+RTOS_SOURCE_DIR = $(FREERTOS_ROOT_DIR)/FreeRTOS-Kernel-V202110_00_SMP/FreeRTOS-Kernel
 INCLUDES += -I$(RTOS_SOURCE_DIR)/include
 INCLUDES += -I$(RTOS_SOURCE_DIR)/portable/GCC/RISC-V
 
-C_FILES += main.c main_blinky.c riscv-virt.c ns16550.c \
-	$(DEMO_SOURCE_DIR)/Common/Minimal/EventGroupsDemo.c \
-	$(DEMO_SOURCE_DIR)/Common/Minimal/TaskNotify.c \
-	$(DEMO_SOURCE_DIR)/Common/Minimal/TimerDemo.c \
-	$(DEMO_SOURCE_DIR)/Common/Minimal/blocktim.c \
-	$(DEMO_SOURCE_DIR)/Common/Minimal/dynamic.c \
-	$(DEMO_SOURCE_DIR)/Common/Minimal/recmutex.c \
-	$(RTOS_SOURCE_DIR)/event_groups.c \
+C_FILES += $(RTOS_SOURCE_DIR)/event_groups.c \
 	$(RTOS_SOURCE_DIR)/list.c \
 	$(RTOS_SOURCE_DIR)/queue.c \
 	$(RTOS_SOURCE_DIR)/stream_buffer.c \
