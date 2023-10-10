@@ -29,8 +29,10 @@
 #include <task.h>
 #include <stdio.h>
 
+#include <include/log.h>
+
 /* Run a simple demo just prints 'Blink' */
-//#define DEMO_BLINKY	1
+#define DEMO_BLINKY	1
 #define mainVECTOR_MODE_DIRECT	1
 
 extern void freertos_risc_v_trap_handler( void );
@@ -121,13 +123,11 @@ void vApplicationTickHook( void )
 }
 /*-----------------------------------------------------------*/
 
-void vAssertCalled( void )
+void vAssertCalled( char *file, uint32_t line )
 {
 volatile uint32_t ulSetTo1ToExitFunction = 0;
 
+	//loge("Assert File: Line: %s %lu\n", file, line);
 	taskDISABLE_INTERRUPTS();
-	while( ulSetTo1ToExitFunction != 1 )
-	{
-		__asm volatile( "NOP" );
-	}
+	for( ;; );
 }

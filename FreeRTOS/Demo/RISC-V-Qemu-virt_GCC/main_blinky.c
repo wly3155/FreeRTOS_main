@@ -34,6 +34,9 @@
 #include "riscv-virt.h"
 #include "ns16550.h"
 
+
+#include <include/log.h>
+
 /* Priorities used by the tasks. */
 #define mainQUEUE_RECEIVE_TASK_PRIORITY		( tskIDLE_PRIORITY + 2 )
 #define	mainQUEUE_SEND_TASK_PRIORITY		( tskIDLE_PRIORITY + 1 )
@@ -65,6 +68,8 @@ const char * const pcMessage1 = "Transfer1";
 const char * const pcMessage2 = "Transfer2";
 int f = 1;
 
+
+	vSendString( "Hello prvQueueSendTask!" );
 	/* Remove compiler warning about unused parameter. */
 	( void ) pvParameters;
 
@@ -82,13 +87,13 @@ int f = 1;
 		f = !f;
 
 		/* Place this task in the blocked state until it is time to run again. */
-		vTaskDelayUntil( &xNextWakeTime, mainQUEUE_SEND_FREQUENCY_MS );
+		//vTaskDelay( &xNextWakeTime, mainQUEUE_SEND_FREQUENCY_MS );
 
 		/* Send to the queue - causing the queue receive task to unblock and
 		toggle the LED.  0 is used as the block time so the sending operation
 		will not block - it shouldn't need to block as the queue should always
 		be empty at this point in the code. */
-		xQueueSend( xQueue, &ulValueToSend, 0U );
+		//xQueueSend( xQueue, &ulValueToSend, 0U );
 	}
 }
 
@@ -102,6 +107,8 @@ const char * const pcMessage1 = "Blink1";
 const char * const pcMessage2 = "Blink2";
 const char * const pcFailMessage = "Unexpected value received\r\n";
 int f = 1;
+
+	vSendString( "Hello prvQueueReceiveTask!" );
 
 	/* Remove compiler warning about unused parameter. */
 	( void ) pvParameters;
@@ -139,7 +146,7 @@ int f = 1;
 int main_blinky( void )
 {
 	vSendString( "Hello FreeRTOS!" );
-
+	logi("hello freertos by logi\n");
 	/* Create the queue. */
 	xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint32_t ) );
 
@@ -152,7 +159,7 @@ int main_blinky( void )
 		xTaskCreate( prvQueueSendTask, "Tx", configMINIMAL_STACK_SIZE * 2U, NULL,
 					mainQUEUE_SEND_TASK_PRIORITY, NULL );
 	}
-
+	vSendString( "Hello FreeRTOS prepare to enter OS!" );
 	vTaskStartScheduler();
 
 	return 0;

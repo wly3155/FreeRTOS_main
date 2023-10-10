@@ -14,7 +14,7 @@ C_FLAGS += -nostartfiles -march=rv32imac_zicsr -mabi=ilp32 -mcmodel=medany \
 	-fdata-sections -fno-builtin-printf -MMD -MP
 
 LD_FLAGS += -nostartfiles -march=rv32imac -mabi=ilp32 -mcmodel=medany \
-	-Xlinker --gc-sections -Xlinker --defsym=__stack_size=300
+	-Xlinker --gc-sections -Xlinker --defsym=__stack_size=1000
 
 ifeq ($(BUILD_TYPE), debug)
 	C_FLAGS += -Og -ggdb3
